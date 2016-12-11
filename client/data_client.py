@@ -1,9 +1,9 @@
 import socket
-import sys
+
+
 
 def send(data):
     HOST, PORT = "192.168.1.16", 1337
-    #data = text_in.join(sys.argv[1:])
 
     # Create a socket (SOCK_STREAM means a TCP socket)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

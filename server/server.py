@@ -1,6 +1,7 @@
 __author__ = 'Jesse'
 import socketserver
 
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     """
     The RequestHandler class for our server.
@@ -17,6 +18,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         print(self.data)
         # just send back the same data, but upper-cased
         self.request.sendall(self.data.upper())
+
 
 if __name__ == "__main__":
     HOST, PORT = "", 1337
