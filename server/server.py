@@ -1,5 +1,11 @@
+import logging
+
 __author__ = 'Jesse'
 import socketserver
+import json
+
+logging.basicConfig(format="[%(asctime)s] [%(levelname)8s] --- %(message)s (%(filename)s:%(lineno)s)",
+                    level=logging.DEBUG)
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
@@ -14,8 +20,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
-        print("{} wrote:".format(self.client_address[0]))
-        print(self.data)
+        logging.debug("{} wrote:".format(self.client_address[0]))
+        logging.debug(self.data)
+
+        data_string = self.data.decode("utf-8")
+        data_obj = json.loads(data_string)
+
+        logging.debug(data_obj)
+
         # just send back the same data, but upper-cased
         self.request.sendall(self.data.upper())
 
