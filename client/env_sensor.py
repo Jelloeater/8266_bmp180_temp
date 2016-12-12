@@ -1,20 +1,20 @@
-class Container:
-    def __init__(self, temp, p, altitude):
-        self.temp = temp
-        self.p = p
-        self.altitude = altitude
+from machine import I2C, Pin
+from bmp180 import BMP180
 
 
-def get():
-    # Returns temp, p, altitude
-    from machine import I2C, Pin
-    from bmp180 import BMP180
+class Info:
+    def __init__(self):
+        self.temp = None
+        self.p = None
+        self.altitude = None
+        self.update()
 
-    bus = I2C(Pin(5), Pin(4), freq=9600)
-    bmp180 = BMP180(bus)
-    bmp180.oversample_sett = 2
-    bmp180.baseline = 101325
-    temp = bmp180.temperature
-    p = bmp180.pressure
-    altitude = bmp180.altitude
-    return Container(temp, p, altitude)
+    def update(self):
+        # Returns object with temp, p, altitude
+        bus = I2C(Pin(5), Pin(4), freq=9600)
+        bmp180 = BMP180(bus)
+        bmp180.oversample_sett = 2
+        bmp180.baseline = 101325
+        self.temp = bmp180.temperature
+        self.p = bmp180.pressure
+        self.altitude = bmp180.altitude
