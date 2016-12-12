@@ -1,10 +1,9 @@
 __author__ = 'Jesse'
-import data_client, env_sensor, ujson
+import data_client, env_sensor, json
 
 
 def run():
-    sensor_data = str(env_sensor.get())
-    json_to_send = ujson.dumps(sensor_data)
+    json_to_send = json.dumps(env_sensor.get().__dict__)
     data_client.send(json_to_send)
     print('JSON TO SEND:  '+ json_to_send)
 
