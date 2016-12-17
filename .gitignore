@@ -60,3 +60,6 @@ target/
 
 # Created by .ignore support plugin (hsz.mobi)
 /.idea/
+/client/COPYTO8266.bat
+/client/webrepl_cli.py
+/client/websocket_helper.py
