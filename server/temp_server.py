@@ -3,6 +3,7 @@ import argparse
 import logging
 import socketserver
 import json
+import datetime
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -20,9 +21,9 @@ class DatabaseHelper():
     # INTEGER, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, \
     # VARCHAR
 
-    def __init__(self, ):
+    def __init__(self):
         # Global ORM BASE, used by module
-        self.BASE = sqlalchemy.ext.declarative.declarative_base()
+        self.BASE = declarative_base()
 
     def create_tables(self):
         logging.debug('Creating table if not already present')
@@ -36,7 +37,8 @@ class DatabaseHelper():
             print('Skipping database re-initialization')
 
 
-    def get_engine(self):
+    @staticmethod
+    def get_engine():
         return sqlalchemy.create_engine('sqlite:///EnvData.db')
 
     def get_session(self):
@@ -45,15 +47,24 @@ class DatabaseHelper():
         DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
         return DBSession()
 
-    def add_data(self,username):
-        d = EnvData(username = username)
-        s = self.get_session()
-        s.add(d)
-        s.commit()
-
     def get_all_rows(self):
         session = self.get_session()
         return session.query(EnvData).all()
+
+    def add_data(self,data_obj,client_ip):
+
+        # Create DB obj class instance
+        db_entry = EnvData()
+        db_entry.client_ip = client_ip
+        db_entry.timestamp = datetime.datetime.now().isoformat()
+        db_entry.altitude = data_obj.altitude
+        db_entry.p = data_obj.p
+        db_entry.temp = data_obj.temp
+
+        #Write DB obj to disk
+        s = self.get_session()
+        s.add(db_entry)
+        s.commit()
 
 
 # Classes are directly mapped to tables, without the need for a mapper binding (ex mapper(Class, table_definition))
@@ -61,8 +72,12 @@ class EnvData(DatabaseHelper().BASE):
     from sqlalchemy import Column, Integer, String
     """Defines Device object relational model, is used for both table creation and object interaction"""
     __tablename__ = 'EnvData'
-    device_id = Column('row_id', Integer, primary_key=True)
-    username = Column('username', String, nullable=False)
+    row_id = Column('row_id', Integer, primary_key=True)
+    timestamp = Column('timestamp, String')
+    client_ip = Column('client_ip', String, nullable=False)
+    temp = Column('temp', String, nullable=False)
+    p = Column('p', String, nullable=False)
+    altitude = Column('altitude', String, nullable=False)
 
 
 class TableOutput(object):
@@ -75,7 +90,7 @@ class TableOutput(object):
         return str(t)
 
 
-class SocketServer(socketserver.BaseRequestHandler):
+class SocketCatcher(socketserver.BaseRequestHandler):
     """
     The RequestHandler class for our server.
 
@@ -86,17 +101,21 @@ class SocketServer(socketserver.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(1024).strip()
-        logging.debug("{} wrote:".format(self.client_address[0]))
-        logging.debug(self.data)
+        while True:
+            self.data = self.request.recv(1024).strip()
 
-        data_string = self.data.decode("utf-8")
-        data_obj = json.loads(data_string)
+            if not self.data: break
 
-        logging.debug(data_obj)
+            client_ip = self.client_address[0]
+            data_string = self.data.decode("utf-8")
+            data_obj = json.loads(data_string)
 
-        # just send back the same data, but upper-cased
-        # self.request.sendall(self.data.upper())
+            logging.debug("{} wrote:".format(client_ip))
+            logging.debug(self.data)
+            logging.debug(data_obj)
+
+            DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
+
 
 
 class main(object):
@@ -104,17 +123,23 @@ class main(object):
     def run():
         parser = argparse.ArgumentParser()
         parser.add_argument("-s", "--setup", action="store_true", help="Setup Environment")
+        parser.add_argument("-g", "--getrows", action="store_true", help="Get All Rows")
         args = parser.parse_args()
 
         if args.setup:
             DatabaseHelper().create_tables()
             sys.exit(0)
 
+        if args.getrows:
+            d=DatabaseHelper()
+            logging.debug(d.get_all_rows())
+            sys.exit(0)
+
         HOST, PORT = "", 1337
 
         # Create the server
         logging.debug("Starting socket server")
-        server = socketserver.TCPServer((HOST, PORT), SocketServer)
+        server = socketserver.TCPServer((HOST, PORT), SocketCatcher)
 
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
