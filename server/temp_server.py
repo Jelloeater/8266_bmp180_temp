@@ -53,9 +53,9 @@ class DatabaseHelper():
         db_entry = EnvData()
         db_entry.client_ip = client_ip
         db_entry.timestamp = datetime.datetime.now().isoformat()
-        db_entry.altitude = data_obj.altitude
-        db_entry.p = data_obj.p
-        db_entry.temp = data_obj.temp
+        db_entry.altitude = data_obj['altitude']
+        db_entry.p = data_obj['p']
+        db_entry.temp = data_obj['temp']
 
         #Write DB obj to disk
         s = self.get_session()
@@ -128,7 +128,13 @@ class main(object):
 
         if args.getrows:
             d=DatabaseHelper()
-            logging.debug(d.get_all_rows())
+            dataobj = d.get_all_rows()
+            data_rows = []
+            for i in dataobj:
+                data_rows.append([i.row_id, i.timestamp, i.client_ip, i.temp, i.p, i.altitude])
+            table = TableOutput.create_table(['row_id', 'timestamp', 'client_ip', 'temp', 'p', 'altitude'],data_rows)
+
+            logging.debug(table)
             sys.exit(0)
 
         HOST, PORT = "", 1337
