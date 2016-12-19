@@ -100,7 +100,9 @@ class SocketCatcher(socketserver.BaseRequestHandler):
         while True:
             self.data = self.request.recv(1024).strip()
 
-            if not self.data: break
+            if not self.data:
+                logging.debug('no data')
+                break
 
             client_ip = self.client_address[0]
             data_string = self.data.decode("utf-8")
@@ -108,7 +110,6 @@ class SocketCatcher(socketserver.BaseRequestHandler):
 
             logging.debug("{} wrote:".format(client_ip))
             logging.debug(self.data)
-            logging.debug(data_obj)
 
             DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
 
@@ -143,9 +144,11 @@ class main(object):
         logging.debug("Starting socket server")
         server = socketserver.TCPServer((HOST, PORT), SocketCatcher)
 
-        # Activate the server; this will keep running until you
-        # interrupt the program with Ctrl-C
-        server.serve_forever()
+
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            server.shutdown()
 
 
 if __name__ == "__main__":

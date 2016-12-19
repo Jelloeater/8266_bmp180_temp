@@ -10,7 +10,7 @@ def send(data):
     try:
         # Connect to server and send data
         sock.connect((HOST, PORT))
-        sock.sendall(bytes(data + "\n", "utf-8"))
+        sock.sendall(bytes(data, "utf-8"))
     finally:
         sock.close()
     print("Sent:     {}".format(data))

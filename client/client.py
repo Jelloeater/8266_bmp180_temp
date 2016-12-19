@@ -7,7 +7,6 @@ SLEEP_TIMEOUT = 10
 
 def data_send():
         json_to_send = json.dumps(env_sensor.Info().__dict__)
-        print(json_to_send)
         data_client.send(json_to_send)
 
 def run():
@@ -16,10 +15,10 @@ def run():
         print('woke from a deep sleep')
     else:
         print('power on or hard reset')
-        sleep(15)
+        sleep(5)
     while True:
         data_send()
-        esp.deepsleep(1000000 * SLEEP_TIMEOUT)  #Goto deep sleep to save battery
+        esp.deepsleep(500000 * SLEEP_TIMEOUT)  #Goto deep sleep to save battery
 
 if __name__ == "__main__":
     run()
