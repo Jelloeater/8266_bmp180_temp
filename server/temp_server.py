@@ -14,24 +14,20 @@ __author__ = 'Jesse'
 logging.basicConfig(format="[%(asctime)s] [%(levelname)8s] --- %(message)s (%(filename)s:%(lineno)s)",
                     level=logging.DEBUG)
 
-
+BASE = declarative_base()  # Needs to be module level w/ database
 class DatabaseHelper():
     # from sqlalchemy.dialects.sqlite import \
     # BLOB, BOOLEAN, CHAR, DATE, DATETIME, DECIMAL, FLOAT, \
     # INTEGER, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, \
     # VARCHAR
 
-    def __init__(self):
-        # Global ORM BASE, used by module
-        self.BASE = declarative_base()
-
     def create_tables(self):
         logging.debug('Creating table if not already present')
         engine = self.get_engine()
         print('Are you sure to want to DROP ALL TABLES, this cannot be undone!')
         if input('({0})>'.format('Type YES to continue')) == 'YES':
-            self.BASE.metadata.drop_all(engine)
-            self.BASE.metadata.create_all(engine)
+            BASE.metadata.drop_all(engine)
+            BASE.metadata.create_all(engine)
             print('DATABASE RE-INITIALIZED')
         else:
             print('Skipping database re-initialization')
@@ -43,7 +39,7 @@ class DatabaseHelper():
 
     def get_session(self):
         engine = DatabaseHelper.get_engine()
-        self.BASE.metadata.bind = engine
+        BASE.metadata.bind = engine
         DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
         return DBSession()
 
@@ -68,12 +64,12 @@ class DatabaseHelper():
 
 
 # Classes are directly mapped to tables, without the need for a mapper binding (ex mapper(Class, table_definition))
-class EnvData(DatabaseHelper().BASE):
+class EnvData(BASE):
     from sqlalchemy import Column, Integer, String
     """Defines Device object relational model, is used for both table creation and object interaction"""
     __tablename__ = 'EnvData'
     row_id = Column('row_id', Integer, primary_key=True)
-    timestamp = Column('timestamp, String')
+    timestamp = Column('timestamp', String)
     client_ip = Column('client_ip', String, nullable=False)
     temp = Column('temp', String, nullable=False)
     p = Column('p', String, nullable=False)
