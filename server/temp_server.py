@@ -1,6 +1,7 @@
 #!python
 import argparse
 import logging
+import socket
 import socketserver
 import json
 import datetime
@@ -110,10 +111,31 @@ class SocketCatcher(socketserver.BaseRequestHandler):
 
             logging.debug("{} wrote:".format(client_ip))
             logging.debug(self.data)
-
             DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
+            break
 
 
+
+class SocketHelper():
+    @staticmethod
+    def send(data, HOST, PORT):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.connect((HOST, PORT))
+            sock.sendall(bytes(data, "utf-8"))
+        finally:
+            sock.close()
+        print("Sent:     {}".format(data))
+
+    @staticmethod
+    def receive():
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            received = str(sock.recv(1024), "utf-8")
+        finally:
+            sock.close()
+        print("Received: {}".format(received))
+        return received
 
 class main(object):
     @staticmethod
@@ -146,6 +168,7 @@ class main(object):
 
 
         try:
+            server.request_queue_size = 5
             server.serve_forever()
         except KeyboardInterrupt:
             server.shutdown()
