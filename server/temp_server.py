@@ -112,7 +112,6 @@ class SocketCatcher(socketserver.BaseRequestHandler):
             logging.debug("{} wrote:".format(client_ip))
             logging.debug(self.data)
             DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
-            break
 
 
 
@@ -165,13 +164,11 @@ class main(object):
         # Create the server
         logging.debug("Starting socket server")
         server = socketserver.TCPServer((HOST, PORT), SocketCatcher)
-
-
-        try:
-            server.request_queue_size = 5
-            server.serve_forever()
-        except KeyboardInterrupt:
-            server.shutdown()
+        while True:
+            try:
+                server.handle_request()
+            except KeyboardInterrupt:
+                server.shutdown()
 
 
 if __name__ == "__main__":
