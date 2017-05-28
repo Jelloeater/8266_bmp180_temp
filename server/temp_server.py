@@ -8,7 +8,7 @@ import datetime
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from bottle import route, run, template, request
+import bottle
 import sys
 
 __author__ = 'Jesse'
@@ -99,13 +99,13 @@ class WebServer(object):
 
     @staticmethod
     def start_server():
-        @route('/', method='POST')
+        @bottle.route('/', method='POST')
         def index():
-            for l in request.body:
+            for l in bottle.request.body:
                 print (l)
-            print (request.body.readlines())
-
-        run(host='', port=8080,debug=True)
+            print (bottle.request.body.readlines())
+        bottle.debug(True)
+        bottle.run(host='', port=8080)
 
 
 class main(object):
