@@ -7,7 +7,7 @@ from bmp180 import BMP180
 import socket
 
 SLEEP_TIMEOUT = 10
-HOST, PORT = "192.168.1.16", 1337
+HOST, PORT = "192.168.1.16", 8080
 
 
 class main:
@@ -37,23 +37,24 @@ class data_client:
         try:
             # Connect to server and send data
             sock.connect((HOST, PORT))
+            headers = """POST /auth HTTP/1.1\r
+            Connection: close\r
+            """
+
+            header = headers.format(
+                content_type="application/x-www-form-urlencoded",
+                content_length=len(data),
+                host=str(HOST) + ":" + str(PORT)
+            )
+            payload = header + "userName=Ganesh&password=pass"
+            # payload = header + data
+
             sock.sendall(bytes(data, "utf-8"))
+
         finally:
             sock.close()
         print("Sent:     {}".format(data))
-
-    @staticmethod
-    def receive():
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            # Connect to server and send data
-            sock.connect((HOST, PORT))
-            received = str(sock.recv(1024), "utf-8")
-        finally:
-            sock.close()
-
-        print("Received: {}".format(received))
-        return received
+        print("Payload:     {}".format(payload))
 
 class env_sensor_Info:
     def __init__(self):

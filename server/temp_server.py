@@ -8,6 +8,7 @@ import datetime
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from bottle import route, run, template, request
 import sys
 
 __author__ = 'Jesse'
@@ -87,54 +88,25 @@ class TableOutput(object):
         return str(t)
 
 
-class SocketCatcher(socketserver.BaseRequestHandler):
-    """
-    The RequestHandler class for our server.
-
-    It is instantiated once per connection to the server, and must
-    override the handle() method to implement communication to the
-    client.
-    """
-
-    def handle(self):
-        # self.request is the TCP socket connected to the client
-        while True:
-            self.data = self.request.recv(1024).strip()
-
-            if not self.data:
-                logging.debug('no data')
-                break
-
-            client_ip = self.client_address[0]
-            data_string = self.data.decode("utf-8")
-            data_obj = json.loads(data_string)
-
-            logging.debug("{} wrote:".format(client_ip))
-            logging.debug(self.data)
-            DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
-
-
-
-class SocketHelper():
-    @staticmethod
-    def send(data, HOST, PORT):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.connect((HOST, PORT))
-            sock.sendall(bytes(data, "utf-8"))
-        finally:
-            sock.close()
-        print("Sent:     {}".format(data))
+class WebServer(object):
+    # client_ip = self.client_address[0]
+    # data_string = self.data.decode("utf-8")
+    # data_obj = json.loads(data_string)
+    #
+    # logging.debug("{} wrote:".format(client_ip))
+    # logging.debug(self.data)
+    # DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
 
     @staticmethod
-    def receive():
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            received = str(sock.recv(1024), "utf-8")
-        finally:
-            sock.close()
-        print("Received: {}".format(received))
-        return received
+    def start_server():
+        @route('/', method='POST')
+        def index():
+            for l in request.body:
+                print (l)
+            print (request.body.readlines())
+
+        run(host='', port=8080,debug=True)
+
 
 class main(object):
     @staticmethod
@@ -158,17 +130,10 @@ class main(object):
 
             logging.debug(table)
             sys.exit(0)
-
-        HOST, PORT = "", 1337
-
         # Create the server
         logging.debug("Starting socket server")
-        server = socketserver.TCPServer((HOST, PORT), SocketCatcher)
-        while True:
-            try:
-                server.handle_request()
-            except KeyboardInterrupt:
-                server.shutdown()
+        WebServer.start_server()
+
 
 
 if __name__ == "__main__":
