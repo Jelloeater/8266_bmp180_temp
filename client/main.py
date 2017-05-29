@@ -7,8 +7,6 @@ from bmp180 import BMP180
 import urequests
 
 SLEEP_TIMEOUT = 10
-HOST, PORT = "192.168.1.16", 8080
-
 
 class main:
     @staticmethod
@@ -21,27 +19,18 @@ class main:
             sleep(5)
         while True:
             main.data_send()
-            esp.deepsleep(500000 * SLEEP_TIMEOUT)  #Goto deep sleep to save battery
+            esp.deepsleep(500000 * SLEEP_TIMEOUT)  # Goto deep sleep to save battery
 
     @staticmethod
     def data_send():
-            json_to_send = json.dumps(env_sensor_Info().__dict__)
-            data_client.send(json_to_send)
+        json_to_send = json.dumps(env_sensor_Info().__dict__)
+        try:
+            r = urequests.post("http://192.168.1.16:8080/")
+            print(r.__dict__)
+            r.close()
+        except OSError:
+            print('Connection Failure')
 
-class data_client:
-    @staticmethod
-    def send(data):
-        r = urequests.post("http://192.168.1.16:8080/")
-        print(r)
-        print(r.content)
-        print(r.text)
-        print(r.content)
-        print(r.json())
-
-        # It's mandatory to close response objects as soon as you finished
-        # working with them. On MicroPython platforms without full-fledged
-        # OS, not doing so may lead to resource leaks and malfunction.
-        r.close()
 
 class env_sensor_Info:
     def __init__(self):
