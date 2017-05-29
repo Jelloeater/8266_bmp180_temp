@@ -99,7 +99,7 @@ class WebServer(object):
 
     @staticmethod
     def start_server():
-        @bottle.route('/', method='GET')
+        @bottle.route('/', method='POST')
         def index():
             for l in bottle.request.body:
                 print (l)

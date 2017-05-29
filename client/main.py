@@ -4,7 +4,7 @@ __author__ = 'Jesse'
 import json, esp, machine
 from machine import I2C, Pin
 from bmp180 import BMP180
-import urequests
+import urequests as requests
 
 SLEEP_TIMEOUT = 10
 
@@ -25,7 +25,9 @@ class main:
     def data_send():
         json_to_send = json.dumps(env_sensor_Info().__dict__)
         try:
-            r = urequests.post("http://192.168.1.16:8080/")
+            url = "http://192.168.1.16:8080"
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            r = requests.post(url, data=json_to_send, headers=headers)
             print(r.__dict__)
             r.close()
         except OSError:
