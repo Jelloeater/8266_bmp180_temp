@@ -17,6 +17,8 @@ logging.basicConfig(format="[%(asctime)s] [%(levelname)8s] --- %(message)s (%(fi
                     level=logging.DEBUG)
 
 BASE = declarative_base()  # Needs to be module level w/ database
+
+
 class DatabaseHelper():
     # from sqlalchemy.dialects.sqlite import \
     # BLOB, BOOLEAN, CHAR, DATE, DATETIME, DECIMAL, FLOAT, \
@@ -34,7 +36,6 @@ class DatabaseHelper():
         else:
             print('Skipping database re-initialization')
 
-
     @staticmethod
     def get_engine():
         return sqlalchemy.create_engine('sqlite:///EnvData.db')
@@ -49,7 +50,7 @@ class DatabaseHelper():
         session = self.get_session()
         return session.query(EnvData).all()
 
-    def add_data(self,data_obj,client_ip):
+    def add_data(self, data_obj, client_ip):
 
         # Create DB obj class instance
         db_entry = EnvData()
@@ -59,7 +60,7 @@ class DatabaseHelper():
         db_entry.p = data_obj['p']
         db_entry.temp = data_obj['temp']
 
-        #Write DB obj to disk
+        # Write DB obj to disk
         s = self.get_session()
         s.add(db_entry)
         s.commit()
@@ -101,11 +102,12 @@ class WebServer(object):
     def start_server():
         @bottle.route('/', method='POST')
         def index():
-            for l in bottle.request.body:
-                print (l)
-            print (bottle.request.body.readlines())
-        bottle.debug(True)
-        bottle.run(host='', port=8080)
+            logging.debug(bottle.request.headers.__dict__)
+            logging.debug(bottle.request.body.read())
+            header_ip = bottle.request.headers.environ['REMOTE_ADDR']
+            data_post = json.loads(bottle.request.body.read().decode())
+            DatabaseHelper().add_data(client_ip=header_ip, data_obj=data_post)
+
 
 
 class main(object):
@@ -121,12 +123,12 @@ class main(object):
             sys.exit(0)
 
         if args.getrows:
-            d=DatabaseHelper()
+            d = DatabaseHelper()
             dataobj = d.get_all_rows()
             data_rows = []
             for i in dataobj:
                 data_rows.append([i.row_id, i.timestamp, i.client_ip, i.temp, i.p, i.altitude])
-            table = TableOutput.create_table(['row_id', 'timestamp', 'client_ip', 'temp', 'p', 'altitude'],data_rows)
+            table = TableOutput.create_table(['row_id', 'timestamp', 'client_ip', 'temp', 'p', 'altitude'], data_rows)
 
             logging.debug(table)
             sys.exit(0)
@@ -135,6 +137,7 @@ class main(object):
         WebServer.start_server()
 
 
-
 if __name__ == "__main__":
     main.run()
+    bottle.debug(True)
+    bottle.run(host='', port=8080)
