@@ -106,6 +106,17 @@ class WebServer(object):
             data_post = json.loads(bottle.request.body.read().decode())
             DatabaseHelper().add_data(client_ip=header_ip, data_obj=data_post)
 
+    @staticmethod
+    def start_server():
+        @bottle.route('/', method='GET')
+        def index():
+            # TODO Add nice HTML Table Output of last 24 temps, maybe even a graph
+            d = DatabaseHelper()
+            dataobj = d.get_all_rows()
+            data_rows = []
+            for i in dataobj:
+                data_rows.append([i.timestamp, i.temp])
+            return TableOutput.create_table(['timestamp', 'temp'], data_rows)
 
 
 class main(object):
