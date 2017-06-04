@@ -1,8 +1,6 @@
 #!python
 import argparse
 import logging
-import socket
-import socketserver
 import json
 import datetime
 import sqlalchemy

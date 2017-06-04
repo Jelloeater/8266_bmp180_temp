@@ -6,23 +6,33 @@ from machine import I2C, Pin
 from bmp180 import BMP180
 import urequests as requests
 
-SLEEP_TIMEOUT = 10
+INITIAL_SLEEP_TIMEOUT = 60 * 5 * 1000000  # Seconds x Minutes
+SLEEP_TIMEOUT = 60 * 30 * 1000000  # Seconds
+RETRY_SLEEP_TIMEOUT = 60 * 1 * 1000000  # Seconds x Minutes
+
 
 class main:
     @staticmethod
     def run():
-        sleep(4)  # Wait for network
+        sleep(5)  # Wait for network
         if machine.reset_cause() == machine.DEEPSLEEP_RESET:
-            print('woke from a deep sleep')
+            # Deep Sleep Wake
+            if main.data_send():
+                esp.deepsleep(SLEEP_TIMEOUT)
+            else:
+                esp.deepsleep(RETRY_SLEEP_TIMEOUT)
         else:
-            print('power on or hard reset')
-            sleep(5)
-        while True:
-            main.data_send()
-            esp.deepsleep(500000 * SLEEP_TIMEOUT)  # Goto deep sleep to save battery
+            # Initial Boot
+            print("Initial Boot")
+            if main.data_send():
+                esp.deepsleep(INITIAL_SLEEP_TIMEOUT)
+            else:
+                esp.deepsleep(RETRY_SLEEP_TIMEOUT)
 
     @staticmethod
     def data_send():
+        """ Returns True if data was sent
+        """
         json_to_send = json.dumps(env_sensor_Info().__dict__)
         try:
             url = "http://192.168.1.16:8080"
@@ -30,8 +40,10 @@ class main:
             r = requests.post(url, data=json_to_send, headers=headers)
             print(r.__dict__)
             r.close()
+            return True
         except OSError:
             print('Connection Failure')
+            return False
 
 
 class env_sensor_Info:
