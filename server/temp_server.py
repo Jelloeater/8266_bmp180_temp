@@ -88,17 +88,9 @@ class TableOutput(object):
 
 
 class WebServer(object):
-    # client_ip = self.client_address[0]
-    # data_string = self.data.decode("utf-8")
-    # data_obj = json.loads(data_string)
-    #
-    # logging.debug("{} wrote:".format(client_ip))
-    # logging.debug(self.data)
-    # DatabaseHelper().add_data(client_ip=client_ip, data_obj=data_obj)
-
     @staticmethod
     def start_server():
-        @bottle.route('/', method='POST')
+        @bottle.post('/')
         def index():
             logging.debug(bottle.request.headers.__dict__)
             logging.debug(bottle.request.body.read())
@@ -106,9 +98,7 @@ class WebServer(object):
             data_post = json.loads(bottle.request.body.read().decode())
             DatabaseHelper().add_data(client_ip=header_ip, data_obj=data_post)
 
-    @staticmethod
-    def start_server():
-        @bottle.route('/', method='GET')
+        @bottle.get('/')
         def index():
             # TODO Add nice HTML Table Output of last 24 temps, maybe even a graph
             d = DatabaseHelper()
@@ -148,5 +138,4 @@ class main(object):
 
 if __name__ == "__main__":
     main.run()
-    bottle.debug(True)
-    bottle.run(host='', port=8080)
+    bottle.run(host='', port=8080, debug=True)
