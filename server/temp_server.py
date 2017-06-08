@@ -8,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import bottle
 import sys
+import jsonpickle as jsonpickle
 
 __author__ = 'Jesse'
 
@@ -47,6 +48,10 @@ class DatabaseHelper():
     def get_all_rows(self):
         session = self.get_session()
         return session.query(EnvData).all()
+
+    def get_last_row(self):
+        session = self.get_session()
+        return session.query(EnvData).order_by(EnvData.row_id.desc()).first()
 
     def add_data(self, data_obj, client_ip):
 
@@ -107,6 +112,26 @@ class WebServer(object):
             for i in dataobj:
                 data_rows.append([i.timestamp, i.temp])
             return TableOutput.create_table(['timestamp', 'temp'], data_rows)
+
+        @bottle.get('/last')
+        def index():
+            # TODO Add nice HTML Table Output of last 24 temps, maybe even a graph
+            dataobj = DatabaseHelper().get_last_row()
+            frozen = jsonpickle.encode(dataobj)
+            class Object:
+                def toJSON(self):
+                    return json.dumps(self, default=lambda o: o.__dict__,
+                                      sort_keys=True, indent=4)
+
+            d = Object()
+            d.client_ip = dataobj.client_ip
+            d.timestamp = dataobj.timestamp
+            d.altitude = dataobj.altitude
+            d.p = dataobj.p
+            d.temp = dataobj.temp
+            logging.debug(TableOutput.create_table(['timestamp', 'temp'], [[dataobj.timestamp, dataobj.temp]]))
+            logging.debug(d.toJSON())
+            return frozen
 
 
 class main(object):
