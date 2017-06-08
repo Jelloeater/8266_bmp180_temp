@@ -8,7 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import bottle
 import sys
-import jsonpickle as jsonpickle
 
 __author__ = 'Jesse'
 
@@ -18,7 +17,7 @@ logging.basicConfig(format="[%(asctime)s] [%(levelname)8s] --- %(message)s (%(fi
 BASE = declarative_base()  # Needs to be module level w/ database
 
 
-class DatabaseHelper():
+class DatabaseHelper:
     # from sqlalchemy.dialects.sqlite import \
     # BLOB, BOOLEAN, CHAR, DATE, DATETIME, DECIMAL, FLOAT, \
     # INTEGER, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, \
@@ -39,7 +38,8 @@ class DatabaseHelper():
     def get_engine():
         return sqlalchemy.create_engine('sqlite:///EnvData.db')
 
-    def get_session(self):
+    @staticmethod
+    def get_session():
         engine = DatabaseHelper.get_engine()
         BASE.metadata.bind = engine
         DBSession = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -49,7 +49,7 @@ class DatabaseHelper():
         session = self.get_session()
         return session.query(EnvData).all()
 
-    def get_last_x_rows(self,x):
+    def get_last_x_rows(self, x):
         session = self.get_session()
         return session.query(EnvData).order_by(EnvData.row_id.desc()).limit(x).all()
 
@@ -114,31 +114,18 @@ class WebServer(object):
             return TableOutput.create_table(['timestamp', 'temp'], data_rows)
 
         @bottle.get('/last/<x>')
-        def index(x):
+        def index_last_x(x):
             query_results = DatabaseHelper().get_last_x_rows(int(x))
             data_rows = []
             for i in query_results:
-                d={}
-                d['client_ip'] = i.client_ip
-                d['timestamp'] = i.timestamp
-                d['altitude'] = i.altitude
-                d['p'] = i.p
-                d['temp'] = i.temp
+                d = {'client_ip': i.client_ip, 'timestamp': i.timestamp, 'altitude': i.altitude, 'p': i.p,
+                     'temp': i.temp}
                 data_rows.append(d)
             return json.dumps(data_rows, sort_keys=True, indent=4)
 
-
-            # data_rows = []
-            # for i in query_results:
-            #     d = ToJSON()
-            #     d.client_ip = i.client_ip
-            #     d.timestamp = i.timestamp
-            #     d.altitude = i.altitude
-            #     d.p = i.p
-            #     d.temp = i.temp
-            #     data_rows.append(d)
-            # # noinspection PyCallByClass,PyTypeChecker
-            # return ToJSON.convert(data_rows)
+        @bottle.get('/last')
+        def index_last():
+            return index_last_x(1)
 
 
 class main(object):
