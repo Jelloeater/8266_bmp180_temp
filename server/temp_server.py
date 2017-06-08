@@ -115,23 +115,20 @@ class WebServer(object):
 
         @bottle.get('/last')
         def index():
-            # TODO Add nice HTML Table Output of last 24 temps, maybe even a graph
             dataobj = DatabaseHelper().get_last_row()
-            frozen = jsonpickle.encode(dataobj)
-            class Object:
+
+            class DummyObj:
                 def toJSON(self):
                     return json.dumps(self, default=lambda o: o.__dict__,
                                       sort_keys=True, indent=4)
 
-            d = Object()
+            d = DummyObj()
             d.client_ip = dataobj.client_ip
             d.timestamp = dataobj.timestamp
             d.altitude = dataobj.altitude
             d.p = dataobj.p
             d.temp = dataobj.temp
-            logging.debug(TableOutput.create_table(['timestamp', 'temp'], [[dataobj.timestamp, dataobj.temp]]))
-            logging.debug(d.toJSON())
-            return frozen
+            return d.toJSON()
 
 
 class main(object):
