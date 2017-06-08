@@ -49,9 +49,9 @@ class DatabaseHelper():
         session = self.get_session()
         return session.query(EnvData).all()
 
-    def get_last_row(self):
+    def get_last_x_rows(self,x):
         session = self.get_session()
-        return session.query(EnvData).order_by(EnvData.row_id.desc()).first()
+        return session.query(EnvData).order_by(EnvData.row_id.desc()).limit(x).all()
 
     def add_data(self, data_obj, client_ip):
 
@@ -113,22 +113,32 @@ class WebServer(object):
                 data_rows.append([i.timestamp, i.temp])
             return TableOutput.create_table(['timestamp', 'temp'], data_rows)
 
-        @bottle.get('/last')
-        def index():
-            dataobj = DatabaseHelper().get_last_row()
+        @bottle.get('/last/<x>')
+        def index(x):
+            query_results = DatabaseHelper().get_last_x_rows(int(x))
+            data_rows = []
+            for i in query_results:
+                d={}
+                d['client_ip'] = i.client_ip
+                d['timestamp'] = i.timestamp
+                d['altitude'] = i.altitude
+                d['p'] = i.p
+                d['temp'] = i.temp
+                data_rows.append(d)
+            return json.dumps(data_rows, sort_keys=True, indent=4)
 
-            class DummyObj:
-                def toJSON(self):
-                    return json.dumps(self, default=lambda o: o.__dict__,
-                                      sort_keys=True, indent=4)
 
-            d = DummyObj()
-            d.client_ip = dataobj.client_ip
-            d.timestamp = dataobj.timestamp
-            d.altitude = dataobj.altitude
-            d.p = dataobj.p
-            d.temp = dataobj.temp
-            return d.toJSON()
+            # data_rows = []
+            # for i in query_results:
+            #     d = ToJSON()
+            #     d.client_ip = i.client_ip
+            #     d.timestamp = i.timestamp
+            #     d.altitude = i.altitude
+            #     d.p = i.p
+            #     d.temp = i.temp
+            #     data_rows.append(d)
+            # # noinspection PyCallByClass,PyTypeChecker
+            # return ToJSON.convert(data_rows)
 
 
 class main(object):
