@@ -92,41 +92,41 @@ class TableOutput(object):
         return str(t)
 
 
-class GraphData():
-    import numpy as np
-    from bottle import route, run, template, get, post, request, static_file
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.figure import Figure
-
-    show_plot_template = '''
-    <html>
-    <head></head>
-    <body>
-        <img src="/images/{{filename}}" alt="Image Placeholder">
-    </body>
-    </html>
-    '''
-
-    @route('/plot')
-    # User visit here to see plot
-    def show_plot(filename='test.png'):
-        return template(show_plot_template, filename=filename)
-
-    @route('/images/<filename:re:.*\.png>')
-    # Perform calculation, create and return a plot
-    def make_image(filename):
-        x = [0, 2, 3, 4]  # Calculation
-        y = [-1, 5, 3, 9]
-        fig = Figure()  # Plotting
-        canvas = FigureCanvas(fig)
-        ax = fig.add_subplot(211)
-        ax.plot(x, y)
-        ax.set_title('Plot by Matplotlib')
-        ax.grid(True)
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        canvas.print_figure(filename)
-        return static_file(filename, root='./', mimetype='image/png')
+# class GraphData():
+#     import numpy as np
+#     from bottle import route, run, template, get, post, request, static_file
+#     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+#     from matplotlib.figure import Figure
+#
+#     show_plot_template = '''
+#     <html>
+#     <head></head>
+#     <body>
+#         <img src="/images/{{filename}}" alt="Image Placeholder">
+#     </body>
+#     </html>
+#     '''
+#
+#     @route('/plot')
+#     # User visit here to see plot
+#     def show_plot(filename='test.png'):
+#         return template(show_plot_template, filename=filename)
+#
+#     @route('/images/<filename:re:.*\.png>')
+#     # Perform calculation, create and return a plot
+#     def make_image(filename):
+#         x = [0, 2, 3, 4]  # Calculation
+#         y = [-1, 5, 3, 9]
+#         fig = Figure()  # Plotting
+#         canvas = FigureCanvas(fig)
+#         ax = fig.add_subplot(211)
+#         ax.plot(x, y)
+#         ax.set_title('Plot by Matplotlib')
+#         ax.grid(True)
+#         ax.set_xlabel('x')
+#         ax.set_ylabel('y')
+#         canvas.print_figure(filename)
+#         return static_file(filename, root='./', mimetype='image/png')
 
 
 class WebServer(object):
