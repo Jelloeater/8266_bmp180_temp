@@ -8,7 +8,7 @@ import bottle
 import dateparser
 import pygal
 
-import server.database as database
+import database
 
 __author__ = 'Jesse'
 

@@ -12,7 +12,7 @@ Build commands (run from server directory)
 
 Run in order, for each component (if none specified, just run the web server):
 
-    docker run -d --name 8266_api -p 8080:8080 -v 8266_data_vol:/data 8266_api_img "./graph-web.py" "--debug"
+    docker run -d --name 8266_api -p 8080:8080 -v 8266_data_vol:/data 8266_api_img "./temp_server.py"
 
 To run:
 
