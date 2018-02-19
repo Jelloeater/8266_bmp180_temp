@@ -1,6 +1,7 @@
 import datetime
 import logging
 import platform
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -75,6 +76,7 @@ class EnvData(BASE):
     __tablename__ = 'EnvData'
     row_id = Column('row_id', Integer, primary_key=True)
     timestamp = Column('timestamp', String)
+    # Herp Derp, someone change this to TIMESTAMP, but don't forget to fix the graph parser
     client_ip = Column('client_ip', String, nullable=False)
     temp = Column('temp', String, nullable=False)
     p = Column('p', String, nullable=False)

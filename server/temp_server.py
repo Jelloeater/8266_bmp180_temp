@@ -3,8 +3,11 @@ import argparse
 import logging
 import json
 import sys
+
 import bottle
+import dateparser
 import pygal
+
 import server.database as database
 
 __author__ = 'Jesse'
@@ -35,14 +38,8 @@ class WebServer(object):
             database.DatabaseHelper().add_data(client_ip=header_ip, data_obj=data_post)
 
         @bottle.get('/')
-        def index():
-            # TODO Add nice HTML Table Output of last 24 temps, maybe even a graph
-            d = database.DatabaseHelper()
-            dataobj = d.get_all_rows()
-            data_rows = []
-            for i in dataobj:
-                data_rows.append([i.timestamp, i.temp])
-            return TableOutput.create_table(['timestamp', 'temp'], data_rows)
+        def index_root():
+            return index_graph()
 
         @bottle.get('/last/<x>')
         def index_last_x(x):
@@ -66,11 +63,13 @@ class WebServer(object):
             pressure = []
 
             for i in data:
-                temprature.append((i.timestamp, float(i.temp)))
-                pressure.append((i.timestamp, float(i.altitude)))
+                d = dateparser.parse(i.timestamp)
+                # Do not remove, this is due to storing the time stamp as a STRING in the DDL vs as a TIMESTAMP
+                temprature.append((d, float(i.temp)))
+                pressure.append((d, float(i.altitude)))
 
             date_chart.add("temprature", temprature)
-            date_chart.add("pressure", pressure)
+            date_chart.add("pressure", pressure, secondary=True)
 
             date_chart.render()
 
@@ -91,8 +90,16 @@ class WebServer(object):
 
         @bottle.get('/graph')
         def index_graph():
-            return index_graph_last(1)
+            return index_graph_last(7)
 
+        @bottle.get('/table')
+        def table():
+            d = database.DatabaseHelper()
+            dataobj = d.get_all_rows()
+            data_rows = []
+            for i in dataobj:
+                data_rows.append([i.timestamp, i.temp])
+            return TableOutput.create_table(['timestamp', 'temp'], data_rows)
 
 class main(object):
     @staticmethod
