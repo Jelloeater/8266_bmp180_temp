@@ -5,3 +5,18 @@
 * Uses https://github.com/micropython-IMU/micropython-bmp180
 
 * Work in progress
+
+Build commands (run from server directory)
+
+    docker volume create 8266_data_vol
+    docker build -t 8266_api_img .
+
+Run in order, for each component (if none specified, just run the web server):
+
+    docker run -d --name 8266_api -p 8080:8080 -v 8266_data_vol:/data 8266_api_img "./graph-web.py" "--debug"
+
+To run:
+
+    docker start 8266_api
+
+See Dockerfile for info
