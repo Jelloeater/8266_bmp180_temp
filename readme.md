@@ -26,3 +26,5 @@ See Dockerfile for info
 * Copy all files to 8266
 * After that it should auto boot to the script
 * You will also need to have deep sleep wired up properly.
+
+* See https://github.com/adafruit/ampy for pushing files

@@ -35,7 +35,7 @@ class main:
         """
         json_to_send = json.dumps(env_sensor_Info().__dict__)
         try:
-            url = "http://192.168.22.16:8080"
+            url = "http://192.168.22.13:8080"
             headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
             r = requests.post(url, data=json_to_send, headers=headers)
             print(r.__dict__)
