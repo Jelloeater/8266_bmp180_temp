@@ -28,3 +28,10 @@ See Dockerfile for info
 * You will also need to have deep sleep wired up properly.
 
 * See https://github.com/adafruit/ampy for pushing files
+
+## Wiring
+Make the following connections:
+* GND <-> GND
+* 3V3 <-> VIN (or 3Vo)
+* D1 <-> SCL
+* D2 <-> SDA
